@@ -1,5 +1,6 @@
 package com.cissst;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -15,6 +16,8 @@ public class GamePanel extends JPanel {
 	public BufferedImage up[] = new BufferedImage[4];
 	public BufferedImage down[] = new BufferedImage[4];
 	
+	private int row = 0;//小人的row
+	private int col = 0;//小人的col
 	
 	
 	public GamePanel() {
@@ -51,16 +54,60 @@ public class GamePanel extends JPanel {
 		} 
 	}
 	
-	@Override
-	public void paint(Graphics g) {
-		for(int i = 0;i <Config.map.length;i++) {
-			for(int j=0;j<Config.map[i].length;j++) {
-				if(Config.map[i][j]==Config.WALL) {
-					g.drawImage(wall,Config.WIDTH*j,Config.WIDTH*i,null);
+	/**
+	 * 初始化地图
+	 */
+	public void initMap(Graphics g) {
+		// 设置底面白色
+		g.setColor(Color.white);
+		g.fillRect(0, 0, Config.SWIDTH, Config.SHEIGH);
+
+		for (int i = 0; i < Config.map.length; i++) {
+			for (int j = 0; j < Config.map[i].length; j++) {
+				//將入口坐標方到row col
+				if(Config.map[i][j] == Config.ENTER) {
+					row = i;
+					col = j;
+				}
+				if(Config.map[i][j] == Config.EXIT) {
+					g.setColor(Color.red);
+					g.fillRect(j*Config.WIDTH, i*Config.WIDTH, Config.WIDTH, Config.WIDTH);
+					g.setColor(Color.yellow);
+					g.fillOval(j*Config.WIDTH+15, i*Config.WIDTH+20, 10, 10);
+					g.fillOval(j*Config.WIDTH+35, i*Config.WIDTH+20, 10, 10);
+				}
+				if (Config.map[i][j] == Config.WALL) {
+					g.drawImage(wall, Config.WIDTH * j, Config.WIDTH * i, null);
 				}
 			}
 		}
+		initEnter(g);
+	}
+	
+	public void initEnter(Graphics g) {
+		if(col-1>0&&Config.map[row][col-1]==Config.ROAD) {
+			//小人应该向左
+			g.drawImage(left[0],col*Config.WIDTH,row*Config.WIDTH,null);
+		}else if(col+1<10&&Config.map[row][col+1]==Config.ROAD){
+			//小人应该向右
+			g.drawImage(right[0],col*Config.WIDTH,row*Config.WIDTH,null);
+		}else if(row-1>0&&Config.map[row-1][col]==Config.ROAD){
+			//小人应该向上
+			g.drawImage(up[0],col*Config.WIDTH,row*Config.WIDTH,null);
+		}else if(row+1<10&&Config.map[row+1][col]==Config.ROAD){
+			//小人应该向下
+			g.drawImage(down[0],col*Config.WIDTH,row*Config.WIDTH,null);
+		}
+		
+		//g.drawImage(right[0],col*Config.WIDTH,row*Config.WIDTH,null);
+	}
+	
+	@Override
+	public void paint(Graphics g) {
+		
+		this.initMap(g);
 		this.repaint();
+		//System.out.println("初始化");
 	}
 	
 	@Override
