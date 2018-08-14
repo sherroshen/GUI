@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel {
@@ -15,6 +16,9 @@ public class GamePanel extends JPanel {
 	public BufferedImage right[] = new BufferedImage[4];
 	public BufferedImage up[] = new BufferedImage[4];
 	public BufferedImage down[] = new BufferedImage[4];
+	
+	private int direct = 0;//小人走的方向
+	private int index = 0;//1,2,3,4动画索引
 	
 	private int row = 0;//小人的row
 	private int col = 0;//小人的col
@@ -84,29 +88,107 @@ public class GamePanel extends JPanel {
 		initEnter(g);
 	}
 	
+	/**
+	 * 画小人入口
+	 */
 	public void initEnter(Graphics g) {
-		if(col-1>0&&Config.map[row][col-1]==Config.ROAD) {
-			//小人应该向左
-			g.drawImage(left[0],col*Config.WIDTH,row*Config.WIDTH,null);
-		}else if(col+1<10&&Config.map[row][col+1]==Config.ROAD){
-			//小人应该向右
-			g.drawImage(right[0],col*Config.WIDTH,row*Config.WIDTH,null);
-		}else if(row-1>0&&Config.map[row-1][col]==Config.ROAD){
-			//小人应该向上
-			g.drawImage(up[0],col*Config.WIDTH,row*Config.WIDTH,null);
-		}else if(row+1<10&&Config.map[row+1][col]==Config.ROAD){
-			//小人应该向下
-			g.drawImage(down[0],col*Config.WIDTH,row*Config.WIDTH,null);
+		if(Config.map[row][col]==Config.ENTER) {
+			if(col-1>0&&Config.map[row][col-1]==Config.ROAD) {
+				direct = Config.LEFT;
+				//小人应该向左
+				g.drawImage(left[0],col*Config.WIDTH,row*Config.WIDTH,null);
+			}else if(col+1<10&&Config.map[row][col+1]==Config.ROAD){
+				direct = Config.RIGHT;
+				//小人应该向右
+				g.drawImage(right[0],col*Config.WIDTH,row*Config.WIDTH,null);
+			}else if(row-1>0&&Config.map[row-1][col]==Config.ROAD){
+				direct = Config.UP;
+				//小人应该向上
+				g.drawImage(up[0],col*Config.WIDTH,row*Config.WIDTH,null);
+			}else if(row+1<10&&Config.map[row+1][col]==Config.ROAD){
+				direct = Config.DOWN;
+				//小人应该向下
+				g.drawImage(down[0],col*Config.WIDTH,row*Config.WIDTH,null);
+			}
+			
+			//g.drawImage(right[0],col*Config.WIDTH,row*Config.WIDTH,null);
 		}
 		
-		//g.drawImage(right[0],col*Config.WIDTH,row*Config.WIDTH,null);
+	}
+	
+	public void isWin(int row,int col)
+	{
+		if(row>=0&&row<10&&col>=0&&col<10&&Config.map[row][col]==Config.EXIT)
+		{
+			int re=JOptionPane.showConfirmDialog(null,"成功,确定退出!");
+			//JOptionPane.showMessageDialog(null, "成功!")
+			if(re==JOptionPane.YES_OPTION)
+			{
+				System.exit(0);
+			}
+		}
+	}
+	
+	/**
+	 * 游戏动作
+	 */
+	public void playGame() {
+		Graphics g = this.getGraphics();
+		if(index == 3)index=0;
+		if(direct == Config.LEFT) {
+			isWin(col-1,row);
+			//向左
+			if(col-1>0&&Config.map[row][col-1]==Config.ROAD)
+			{
+				g.drawImage(left[index],(col-1)*Config.WIDTH,row*Config.WIDTH, null);
+				fillBlock(g);
+				index++;
+				col--;
+			}
+			
+		}else if(direct == Config.RIGHT) {
+			isWin(col+1,row);
+			if(col+1<10&&Config.map[row][col+1]==Config.ROAD)
+			{
+				g.drawImage(right[index],(col+1)*Config.WIDTH,row*Config.WIDTH, null);
+				fillBlock(g);
+				index++;
+				col++;
+			}
+		}else if(direct == Config.UP) {
+			isWin(col,row+1);
+			isWin(col,row-1);
+			if (row - 1 > 0 && Config.map[row - 1][col] == Config.ROAD) {
+				g.drawImage(up[index],col*Config.WIDTH,(row-1)*Config.WIDTH, null);
+				fillBlock(g);
+				index++;
+				row--;
+			}
+		}else if(direct == Config.DOWN) {
+			if(row+1<10&&Config.map[row+1][col]==Config.ROAD)
+			{
+				g.drawImage(down[index],col*Config.WIDTH,(row+1)*Config.WIDTH, null);
+				fillBlock(g);
+				index++;
+				row++;
+			}	
+		}
+	}
+	
+	/**
+	 * 清空
+	 */
+	public void fillBlock(Graphics g)
+	{
+		g.setColor(Color.white);
+		g.fillRect(col*Config.WIDTH,row*Config.WIDTH, Config.WIDTH,Config.WIDTH);
 	}
 	
 	@Override
 	public void paint(Graphics g) {
 		
 		this.initMap(g);
-		this.repaint();
+	//	this.repaint();
 		//System.out.println("初始化");
 	}
 	
@@ -116,8 +198,11 @@ public class GamePanel extends JPanel {
 	}
 	
 	
-	
-	
-	
+	public int getDirect() {
+		return direct;
+	}
+	public void setDirect(int direct) {
+		this.direct = direct;
+	}
 	
 }
